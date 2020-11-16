@@ -23,7 +23,6 @@ export default class Room {
   }
 
   deleteUser(id) {
-    console.log({ id });
     if (_.has(this.users, id)) {
       this.users = _.omit(this.users, id);
     }
