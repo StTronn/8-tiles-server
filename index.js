@@ -24,14 +24,15 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", ({ username, roomId }) => {
     let room = rooms[roomId] ? rooms[roomId] : new Room(roomId);
     rooms[roomId] = room;
-
     room.addUser({ username, id: socket.id });
     socket.join(roomId);
-    if (Object.keys(room.users).length == 2) {
-      io.to(roomId).emit("init");
-    }
 
-    console.log("joinRoom");
+    console.log("joinRoom", roomId);
+    room.updateUser(socket, io, socket.id, {});
+  });
+
+  socket.on("updateUser", ({ id, roomId, payload }) => {
+    if (rooms[roomId]) rooms[roomId].updateUser(socket, io, id, payload);
   });
 
   socket.on("disconnecting", () => {

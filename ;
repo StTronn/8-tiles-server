@@ -2,13 +2,13 @@ import _ from "lodash";
 import { getGridObj } from "./shuffle";
 
 export default class Room {
-  initialBoard = {};
+  intialBoard = {};
 
   constructor(id) {
     this.id = id;
     this.users = {};
     this.start = false;
-    this.initialBoard = getGridObj();
+    this.intialBoard = getGridObj();
     this.gameOver = false;
     this.won = false;
     this.gameWinner = "";
@@ -18,7 +18,7 @@ export default class Room {
     return _.size(this.users) == 2;
   }
 
-  addUser({ username, id }) {
+  addUser(io, { username, id }) {
     if (_.keys(this.users).length === 2) return;
     let userObj = {
       id,
@@ -28,11 +28,12 @@ export default class Room {
       solving: false,
       won: false,
     };
-    userObj = { ...userObj, ...this.initialBoard };
+    userObj = { ...userObj, ...this.intialBoard };
     this.users[id] = userObj;
+    this.updateUser(io, id, {});
   }
 
-  updateUser(socket, io, id, payload) {
+  updateUser(io, id, payload) {
     this.users[id] = { ...this.users[id], ...payload };
     if (this.canEmit() || this.start) {
       const users = _.values(this.users);
@@ -41,16 +42,15 @@ export default class Room {
         users.map((obj) => {
           obj = { ...obj, ...this.intialBoard };
         });
+        console.log(JSON.parse(JSON.stringify(this)));
         this.start = true;
-        const gameObj = JSON.parse(JSON.stringify(this));
-        io.to(this.id).emit("initGame", gameObj);
+        io.to(this.id).emit("initGame", JSON.parse(JSON.stringify(this)));
         console.log("emitgame");
-        return;
       }
       //calculate global state
       if (users.some((obj) => obj.won)) this.won = true;
       //send update through socket
-      socket.broadcast.to(this.id).emit("updateObj", this);
+      io.to(this.id).emit("updateObj", this);
       //calculate gameOver and winner
       //what if one user left the game
     }
@@ -59,7 +59,6 @@ export default class Room {
   deleteUser(id) {
     if (_.has(this.users, id)) {
       this.users = _.omit(this.users, id);
-      this.start = false;
     }
   }
 
