@@ -47,10 +47,13 @@ export default class Room {
         console.log("emitgame");
         return;
       }
-      //calculate global state
-      if (users.some((obj) => obj.won)) this.won = true;
-      //send update through socket
+
       socket.broadcast.to(this.id).emit("updateObj", this);
+      //calculate global state
+      if (users.some((obj) => obj.won)) {
+        io.to(this.id).emit("gameOver");
+      }
+      //send update through socket
       //calculate gameOver and winner
       //what if one user left the game
     }
