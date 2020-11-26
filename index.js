@@ -21,10 +21,10 @@ app.use(cors());
 let rooms = {};
 
 io.on("connection", (socket) => {
-  socket.on("joinRoom", ({ username, roomId }) => {
+  socket.on("joinRoom", ({ roomId }) => {
     let room = rooms[roomId] ? rooms[roomId] : new Room(roomId);
     rooms[roomId] = room;
-    room.addUser({ username, id: socket.id });
+    room.addUser({ id: socket.id });
     socket.join(roomId);
 
     console.log("joinRoom", roomId);

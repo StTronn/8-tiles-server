@@ -15,20 +15,23 @@ export default class Room {
   }
 
   canEmit() {
-    return _.size(this.users) == 2;
+    return (
+      _.size(this.users) == 2 &&
+      _.values(this.users).every(({ ready }) => ready)
+    );
   }
 
-  addUser({ username, id }) {
+  addUser({ id }) {
     if (_.keys(this.users).length === 2) return;
     let userObj = {
       id,
-      username,
       could_be_won: true,
       time: 0,
       solving: false,
       won: false,
     };
     userObj = { ...userObj, ...this.initialBoard };
+    console.log(userObj);
     this.users[id] = userObj;
   }
 
@@ -38,10 +41,8 @@ export default class Room {
       const users = _.values(this.users);
       if (!this.start) {
         //update user board
-        users.map((obj) => {
-          obj = { ...obj, ...this.intialBoard };
-        });
         this.start = true;
+        console.log(users);
         const gameObj = JSON.parse(JSON.stringify(this));
         io.to(this.id).emit("initGame", gameObj);
         console.log("emitgame");
