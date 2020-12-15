@@ -35,6 +35,16 @@ export default class Room {
     this.users[id] = userObj;
   }
 
+  cleanUp (io){
+    this.users = {};
+    this.start = false;
+    this.initialBoard = getGridObj();
+    this.gameOver = false;
+    this.won = false;
+    io.to(this.id).emit("gameOver");
+
+  }
+
   updateUser(socket, io, id, payload) {
     this.users[id] = { ...this.users[id], ...payload };
     if (this.canEmit() || this.start) {
@@ -45,20 +55,26 @@ export default class Room {
         console.log(users);
         const gameObj = JSON.parse(JSON.stringify(this));
         io.to(this.id).emit("initGame", gameObj);
-        console.log("emitgame");
+        console.log("initGame");
         return;
       }
 
       socket.broadcast.to(this.id).emit("updateObj", this);
+      
+      // if initgame has happened make sure that 
       //calculate global state
       if (users.some((obj) => obj.won)) {
-        io.to(this.id).emit("gameOver");
+        this.cleanUp(io);
       }
+      // if users left the game update state and call gameOver
+      
       //send update through socket
       //calculate gameOver and winner
       //what if one user left the game
     }
   }
+
+  
 
   deleteUser(id) {
     if (_.has(this.users, id)) {
